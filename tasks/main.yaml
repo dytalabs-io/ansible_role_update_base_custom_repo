@@ -1,0 +1,14 @@
+- name: Check update_base_custom_repo_state variable
+  vars:
+    _state: "{{ update_base_custom_repo_state | default('present', true) }}"
+  ansible.builtin.assert:
+    that: _state == 'present' or _state == 'absent'
+    fail_msg: The update_base_custom_repo_state variable should be set to either present or absent
+
+- name: Dispatch to proper custom_repos implementation
+  ansible.builtin.import_tasks: "{{ update_base_custom_repo_state | default('present', true) }}.yaml"
+
+- name: Sync databases
+  when: update_base_custom_repo_list | length != 0 or update_base_custom_repo_servers | length != 0
+  community.general.pacman:
+    update_cache: true

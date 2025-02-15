@@ -1,0 +1,34 @@
+- name: present | Copy custom repositories definitions
+  loop: "{{ update_base_custom_repo_list }}"
+  ansible.builtin.copy:
+    dest: /etc/pacman.d/{{ item.name }}.repo
+    content: |
+      [{{ item.name }}]
+      Server = {{ item.server }}
+      SigLevel = {{ item.siglevel }}
+    mode: "0644"
+
+- name: present | Include repository definitions in pacman.conf
+  loop: "{{ update_base_custom_repo_list }}"
+  ansible.builtin.lineinfile:
+    path: /etc/pacman.conf
+    regexp: "^Include = /etc/pacman\\.d/{{ item.name | regex_escape }}\\.repo$"
+    line: Include = /etc/pacman.d/{{ item.name }}.repo
+    create: false
+    state: present
+    insertbefore: ^[[]core[]]$
+
+- name: present | Run reflector to sort mirrors
+  ansible.builtin.command: >2-
+    reflector --country {{ location }} --sort rate --fastest 12 --protocol https --save /etc/pacman.d/mirrorlist
+  changed_when: true
+
+- name: present | Add custom servers
+  loop: "{{ update_base_custom_repo_servers | reverse | list }}"
+  ansible.builtin.lineinfile:
+    path: /etc/pacman.d/mirrorlist
+    regexp: "^Server = {{ item | regex_escape }}$"
+    line: "Server = {{ item }}"
+    create: false
+    state: present
+    insertbefore: BOF

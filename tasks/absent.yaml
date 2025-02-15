@@ -1,0 +1,21 @@
+- name: absent | Remove custom repositories definitions
+  ansible.builtin.file:
+    path: /etc/pacman.d/{{ item.name }}.repo
+    state: absent
+  loop: "{{ update_base_custom_repo_list }}"
+
+- name: absent | Delete repository definitions in pacman.conf
+  ansible.builtin.lineinfile:
+    path: /etc/pacman.conf
+    regexp: "^Include = /etc/pacman\\.d/{{ item.name | regex_escape }}\\.repo$"
+    create: false
+    state: absent
+  loop: "{{ update_base_custom_repo_list }}"
+
+- name: absent | Delete custom servers
+  ansible.builtin.lineinfile:
+    path: /etc/pacman.d/mirrorlist
+    regexp: "^Server = {{ item | regex_escape }}$"
+    create: false
+    state: absent
+  loop: "{{ update_base_custom_repo_servers }}"
