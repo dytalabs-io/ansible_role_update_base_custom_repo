@@ -1,9 +1,9 @@
 galaxy_info:
   namespace: dytalabs-io
   role_name: update_base_custom_repo
+  description: A basic configuration management role for Arch Linux
 
   author: ryza
-  description: A secure installation of Arch Linux
   company: dytalabs.io
   license: BSD-3-Clause
 
